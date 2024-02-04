@@ -1,4 +1,4 @@
-﻿namespace Publisher.ViewModels;
+﻿namespace Consumer.ViewModels;
 
 public class GetProductsViewModel
 {

@@ -1,11 +1,14 @@
-﻿using AutoMapper;
-using Publisher.Domain;
-using Publisher.Infra.Context;
-using Publisher.ViewModels;
+﻿using System.Text;
+using AutoMapper;
+using Consumer.Domain;
+using Consumer.Infra.Context;
+using Consumer.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 
-namespace Publisher.Controllers;
+namespace Consumer.Controllers;
 
 [Controller]
 [Route("api/Orders")]
@@ -13,11 +16,13 @@ public class OrdersController : ControllerBase
 {
     private MyDbContext _dbContext;
     private IMapper _mapper;
+    private IConnection _rabbitConnection;
 
-    public OrdersController(MyDbContext dbContext, IMapper mapper)
+    public OrdersController(MyDbContext dbContext, IMapper mapper, IConnectionFactory rabbitConnection)
     {
         _dbContext = dbContext;
         _mapper = mapper;
+        _rabbitConnection = rabbitConnection.CreateConnection();
     }
     
     /// <summary>
@@ -28,7 +33,7 @@ public class OrdersController : ControllerBase
     [HttpPost]
     public IActionResult PlaceOrder([FromBody] PlaceOrderViewModel viewModel)
     {
-        var order = new Orders(Guid.NewGuid(), viewModel.Customername, DateTimeOffset.UtcNow, "Pending");
+        var order = new Orders(Guid.NewGuid(), viewModel.Customername, DateTimeOffset.UtcNow, "Awaiting Payment");
 
         var produtos = _dbContext.Products.Where(x => viewModel.ProductsIds.Contains(x.Id)).ToList();
 
@@ -65,4 +70,32 @@ public class OrdersController : ControllerBase
         
         return Ok(orderViewModel);
     }
+
+    [HttpPost]
+    [Route("ProcessOrders")]
+    public IActionResult ProcessOrders()
+    {
+        using var channel = _rabbitConnection.CreateChannel();
+        
+        channel.QueueDeclare(queue: "PaymentProcessedQueue", durable: false, exclusive: false, autoDelete: false,
+            arguments: null);
+
+        var consumer = new EventingBasicConsumer(channel);
+
+        var message = string.Empty;
+        consumer.Received += (model, ea) =>
+        {
+            var body = ea.Body.ToArray();
+            message = Encoding.UTF8.GetString(body);
+            Console.WriteLine(message);
+        };
+
+        channel.BasicConsume(queue: "PaymentProcessedQueue", autoAck: true, consumer: consumer);
+        
+        channel.Close();
+
+        return Ok();
+    }
+    
+    
 }

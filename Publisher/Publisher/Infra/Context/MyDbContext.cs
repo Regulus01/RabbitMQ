@@ -1,74 +1,38 @@
-﻿using Publisher.Domain;
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using Publisher.Domain;
 
-namespace Publisher.Infra.Context;
+namespace Publisher.Context;
 
 public partial class MyDbContext : DbContext
 {
-    
-    public virtual DbSet<Orders> Orders { get; set; }
-
-    public virtual DbSet<Products> Products { get; set; }
-    
     public MyDbContext(DbContextOptions<MyDbContext> options)
         : base(options)
     {
     }
 
+    public virtual DbSet<Payments> Payments { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Orders>(entity =>
+        modelBuilder.Entity<Payments>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("orders_pkey");
+            entity.HasKey(e => e.Paymentid).HasName("payments_pkey");
 
-            entity.ToTable("orders");
+            entity.ToTable("payments");
 
-            entity.Property(e => e.Id)
+            entity.Property(e => e.Paymentid)
                 .ValueGeneratedNever()
-                .HasColumnName("id");
-            entity.Property(e => e.Customername)
-                .HasMaxLength(255)
-                .HasColumnName("customername");
-            entity.Property(e => e.Orderdate).HasColumnName("orderdate");
-            entity.Property(e => e.Orderstatus)
-                .HasMaxLength(50)
-                .HasColumnName("orderstatus");
-
-            entity.HasMany(d => d.Product).WithMany(p => p.Order)
-                .UsingEntity<Dictionary<string, object>>(
-                    "Orderproducts",
-                    r => r.HasOne<Products>().WithMany()
-                        .HasForeignKey("Productid")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("orderproducts_productid_fkey"),
-                    l => l.HasOne<Orders>().WithMany()
-                        .HasForeignKey("Orderid")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("orderproducts_orderid_fkey"),
-                    j =>
-                    {
-                        j.HasKey("Orderid", "Productid").HasName("orderproducts_pkey");
-                        j.ToTable("orderproducts");
-                        j.IndexerProperty<Guid>("Orderid").HasColumnName("orderid");
-                        j.IndexerProperty<Guid>("Productid").HasColumnName("productid");
-                    });
-        });
-
-        modelBuilder.Entity<Products>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("products_pkey");
-
-            entity.ToTable("products");
-
-            entity.Property(e => e.Id)
-                .ValueGeneratedNever()
-                .HasColumnName("id");
-            entity.Property(e => e.Name)
-                .HasMaxLength(255)
-                .HasColumnName("name");
-            entity.Property(e => e.Price)
+                .HasColumnName("paymentid");
+            entity.Property(e => e.Paymentamount)
                 .HasPrecision(10, 2)
-                .HasColumnName("price");
+                .HasColumnName("paymentamount");
+            entity.Property(e => e.Paymentdate).HasColumnName("paymentdate");
+            entity.Property(e => e.Paymentstatus)
+                .HasMaxLength(50)
+                .HasColumnName("paymentstatus");
+            entity.Property(e => e.Relatedid).HasColumnName("relatedid");
         });
 
         OnModelCreatingPartial(modelBuilder);

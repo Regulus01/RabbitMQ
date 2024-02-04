@@ -1,4 +1,4 @@
-﻿namespace Publisher.Domain;
+﻿namespace Consumer.Domain;
 
 public class Orders
 {

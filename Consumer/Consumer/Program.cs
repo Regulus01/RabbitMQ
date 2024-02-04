@@ -1,8 +1,9 @@
 using System.Data;
 using System.Reflection;
+using Consumer.AutoMapper;
+using Consumer.Infra.Context;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using Publisher.Context;
 using RabbitMQ.Client;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,15 +17,20 @@ builder.Services.AddSwaggerGen(c =>
     c.IncludeXmlComments(xmlPath);
 });
 
-
 builder.Services.AddControllers();
-
+        
 var dbConnection = "Server=localhost:5432; " +
-                        "Database=billingdb; " +
-                        "User id=postgres; " +
-                        "Password=example";
+                   "Database=postgres; " +
+                   "User id=postgres; " +
+                   "Password=example";
 
 builder.Services.AddTransient<IDbConnection>(db => new NpgsqlConnection(dbConnection));
+
+builder.Services.AddDbContext<MyDbContext>(opt =>
+{
+    opt.UseNpgsql(dbConnection, assembly =>
+        assembly.MigrationsAssembly(typeof(MyDbContext).Assembly.FullName));
+});
 
 var connectionFactory = new ConnectionFactory
 {
@@ -36,14 +42,11 @@ var connectionFactory = new ConnectionFactory
 
 builder.Services.AddTransient<IConnectionFactory>(c => connectionFactory);
 
-builder.Services.AddDbContext<MyDbContext>(opt =>
-{
-    opt.UseNpgsql(dbConnection, assembly =>
-        assembly.MigrationsAssembly(typeof(MyDbContext).Assembly.FullName));
-});
+var mapper = AutoMapperConfig.RegisterMaps().CreateMapper();
+builder.Services.AddSingleton(mapper);
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 var app = builder.Build();
-
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -52,7 +55,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.MapControllers();
 app.UseHttpsRedirection();
+app.MapControllers();
 
 app.Run();

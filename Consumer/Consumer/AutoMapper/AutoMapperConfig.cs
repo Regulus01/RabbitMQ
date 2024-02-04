@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
-using Publisher.Domain;
-using Publisher.ViewModels;
+using Consumer.Domain;
+using Consumer.ViewModels;
 
-namespace Publisher.AutoMapper;
+namespace Consumer.AutoMapper;
 
 public class AutoMapperConfig
 {

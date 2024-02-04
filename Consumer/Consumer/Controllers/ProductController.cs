@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
-using Publisher.Infra.Context;
-using Publisher.ViewModels;
+using Consumer.Infra.Context;
+using Consumer.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Publisher.Controllers;
+namespace Consumer.Controllers;
 
 [Controller]
 [Route("api/Products")]
@@ -26,7 +26,7 @@ public class ProductController : ControllerBase
     public IActionResult GetProducts()
     {
         var products = _dbContext.Products.OrderByDescending(x => x.Name)
-                                        .ToList();
+                                          .ToList();
         
         if (products.Count == 0)
             return BadRequest("Produtos não encontrados");
