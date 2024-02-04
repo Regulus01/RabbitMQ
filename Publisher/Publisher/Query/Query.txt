@@ -1,0 +1,30 @@
+﻿CREATE TABLE Products (
+    Id UUID PRIMARY KEY,
+    Name VARCHAR(255) NOT NULL,
+    Price DECIMAL(10, 2) NOT NULL
+);
+
+CREATE TABLE Orders (
+    Id UUID PRIMARY KEY,
+    CustomerName VARCHAR(255) NOT NULL,
+    OrderDate TIMESTAMP WITH TIME ZONE NOT NULL,
+    OrderStatus VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE OrderProducts (
+    OrderId UUID REFERENCES Orders(Id),
+    ProductId UUID REFERENCES Products(Id),
+    PRIMARY KEY (OrderId, ProductId)
+);
+
+INSERT INTO Products (Id, Name, Price) VALUES
+    ('f47ec093-7d0c-4cfb-aa91-955b3a398a8b', 'Laptop HP Envy', 1299.99),
+    ('a7c1e2bc-3e57-4d80-9d12-15b6c05a7ef1', 'Smartphone Samsung Galaxy S21', 799.99),
+    ('6e91a3a5-72a9-4d15-b480-17d9aa3bf234', '4K Smart TV Sony Bravia', 899.99),
+    ('23d6f16a-72e8-4d5f-b3f5-1094239c8a74', 'Apple MacBook Air', 1199.99),
+    ('c0b7d586-72fe-4f29-950a-c1a8c7fcf112', 'Canon EOS Rebel T7i', 699.99),
+    ('8d4c6e9e-36d3-4b62-bcba-f6c6a61b7e76', 'Bose QuietComfort 35 II Headphones', 349.99),
+    ('f10a541d-92ac-48a2-aa24-05a44f3f79f0', 'KitchenAid Stand Mixer', 349.99),
+    ('7b3d56f1-7cc5-48e4-9eb5-ef49765a47a5', 'Nike Air Zoom Pegasus 38 Running Shoes', 129.99),
+    ('9e7e8e9a-5ef1-4ec4-85da-302eb22c7c61', 'Dell UltraSharp 27 4K Monitor', 499.99),
+    ('fd8c8f77-6f88-4d0d-8b67-10e8b5b6e3e5', 'Sony WH-1000XM4 Wireless Noise-Canceling Headphones', 299.99);
